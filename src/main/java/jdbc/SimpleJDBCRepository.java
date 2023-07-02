@@ -35,7 +35,7 @@ public class SimpleJDBCRepository {
             ps.setString(2, user.getLastName());
             ps.setInt(3, user.getAge());
             ps.executeUpdate();
-            return ps.getGeneratedKeys().getLong(1);
+            return findUserByName(user.getFirstName()).getId();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -45,7 +45,15 @@ public class SimpleJDBCRepository {
         try (PreparedStatement ps = connection.prepareStatement(findUserByIdSQL)) {
             ps.setLong(1, userId);
             ResultSet rs = ps.executeQuery();
-            return getUser(rs);
+            if (rs.next()) {
+                long id = rs.getLong("id");
+                String firstName = rs.getString("firstname");
+                String lastName = rs.getString("lastname");
+                int age = rs.getInt("age");
+                return new User(id, firstName, lastName, age);
+            } else {
+                return new User();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -55,19 +63,35 @@ public class SimpleJDBCRepository {
         try (PreparedStatement ps = connection.prepareStatement(findUserByNameSQL)) {
             ps.setString(1, userName);
             ResultSet rs = ps.executeQuery();
-            return getUser(rs);
+            if (rs.next()) {
+                long id = rs.getLong("id");
+                String firstName = rs.getString("firstname");
+                String lastName = rs.getString("lastname");
+                int age = rs.getInt("age");
+                return new User(id, firstName, lastName, age);
+            } else {
+                return new User();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public List<User> findAllUser() {
+        List<User> users = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(findAllUserSQL);
              ResultSet rs = ps.executeQuery()) {
-            return getUsers(rs);
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                String firstName = rs.getString("firstname");
+                String lastName = rs.getString("lastname");
+                int age = rs.getInt("age");
+                users.add(new User(id, firstName, lastName, age));
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return users;
     }
 
     public User updateUser(User user) {
@@ -90,37 +114,5 @@ public class SimpleJDBCRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private User getUser(ResultSet rs) {
-        try {
-            if (rs.next()) {
-                long id = rs.getLong("id");
-                String firstName = rs.getString("firstname");
-                String lastName = rs.getString("lastname");
-                int age = rs.getInt("age");
-                return new User(id, firstName, lastName, age);
-            } else {
-                return new User();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private List<User> getUsers(ResultSet rs) {
-        List<User> users = new ArrayList<>();
-        try {
-            while (rs.next()) {
-                long id = rs.getLong("id");
-                String firstName = rs.getString("firstname");
-                String lastName = rs.getString("lastname");
-                int age = rs.getInt("age");
-                users.add(new User(id, firstName, lastName, age));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return users;
     }
 }
