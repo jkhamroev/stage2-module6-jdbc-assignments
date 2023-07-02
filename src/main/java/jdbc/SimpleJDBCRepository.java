@@ -22,12 +22,12 @@ public class SimpleJDBCRepository {
 
     private Connection connection = CustomDataSource.getInstance().getConnection();
 
-    private static final String createUserSQL = "INSERT INTO myusers (firstname, lastname, age) VALUES (?, ?, ?)";
-    private static final String updateUserSQL = "UPDATE myusers SET firstname = ?, lastname = ?, age = ? WHERE id = ?";
-    private static final String deleteUser = "DELETE FROM myusers WHERE id = ?";
-    private static final String findUserByIdSQL = "SELECT * FROM myusers WHERE id = ?";
-    private static final String findUserByNameSQL = "SELECT * FROM myusers WHERE firstname = ? LIMIT 1";
-    private static final String findAllUserSQL = "SELECT * FROM myusers";
+    private static final String createUserSQL = "INSERT INTO myusers (firstname, lastname, age) VALUES (?, ?, ?);";
+    private static final String updateUserSQL = "UPDATE myusers SET firstname = ?, lastname = ?, age = ? WHERE id = ?;";
+    private static final String deleteUser = "DELETE FROM myusers WHERE id = ?;";
+    private static final String findUserByIdSQL = "SELECT * FROM myusers WHERE id = ?;";
+    private static final String findUserByNameSQL = "SELECT * FROM myusers WHERE firstname = ?;";
+    private static final String findAllUserSQL = "SELECT * FROM myusers;";
 
     public Long createUser(User user) {
         try (PreparedStatement ps = connection.prepareStatement(createUserSQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -62,8 +62,8 @@ public class SimpleJDBCRepository {
     }
 
     public List<User> findAllUser() {
-        try (PreparedStatement ps = connection.prepareStatement(findAllUserSQL)) {
-            ResultSet rs = ps.executeQuery();
+        try (PreparedStatement ps = connection.prepareStatement(findAllUserSQL);
+             ResultSet rs = ps.executeQuery()) {
             return getUsers(rs);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -101,7 +101,7 @@ public class SimpleJDBCRepository {
                 int age = rs.getInt("age");
                 return new User(id, firstName, lastName, age);
             } else {
-                return null;
+                return new User();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
